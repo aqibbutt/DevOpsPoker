@@ -25,7 +25,7 @@ api = Api(app)
 
 # Web API to be called from the poker manager
 class PokerPlayerAPI(Resource):
-
+    global confidence
     ## return bid to caller
     #
     #  Depending on the cards passed to this function in the data parameter,
@@ -66,13 +66,51 @@ class PokerPlayerAPI(Resource):
     # @return a dictionary containing the following values
     #         bid  : a number between 0 and max_bid
     def __get_bid(self, data):
-
-        if(int(data['max_bid'])>0):
-            return int(data['min_bid'])
-        else:
+        if(self.checkpaircardsinhand(data)>(0.5 * data['max_bid'])):
             return 0
+        elif(self.confidence>0):
+            return data['min_bid']
+        # else:
+        #     return data['min_bid'];
 
     # dispatch incoming get commands
+
+    def checkpaircardsinhand(datalist):
+        cardinhand = datalist['hand']
+        cardonboard = datalist['board']
+        if not cardonboard:
+            if(cardinhand[0][0]==cardinhand[1][0]):
+                self=cardinhand[0][0]
+                if (self == 'T'):
+                    return 20
+                if (self == 'J'):
+                    return 22
+                if (self == 'Q'):
+                    return 24
+                if (self == 'K'):
+                    return 26
+                if (self == 'A'):
+                    return 28
+                else:
+                    return (int(self) + int(self))
+            else:
+                return 0
+
+    def __get_values_of_card(self):
+        if(self=='T'):
+            return 20
+        if(self=='J'):
+            return 22
+        if(self=='Q'):
+            return 24
+        if(self=='K'):
+            return 26
+        if(self=='A'):
+            return 40
+        else:
+            return (int(self) + int(self))
+
+
     def get(self, command_id):
 
         data = request.form['data']
